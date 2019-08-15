@@ -1,0 +1,5 @@
+<launch>
+    <node name="camera_info_publisher" pkg="ovc3" type="pubsub_both_ovc" output="screen" />
+    <rosparam command="load" file="$(find ovc3)/param/left_latest.yaml" ns="left_camera_info" />
+    <rosparam command="load" file="$(find ovc3)/param/right_latest.yaml" ns="right_camera_info" />
+</launch>

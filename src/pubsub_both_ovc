@@ -1,0 +1,81 @@
+#!/usr/bin/env python
+
+import rospy
+from sensor_msgs.msg import Image, CameraInfo
+# did not use std_msgs or message_filters
+
+class ovcmain:
+
+    def leftimageCB(self, msg):
+
+        params = rospy.get_param('left_camera_info')
+
+        cam_info_msg = CameraInfo()
+        cam_info_msg.header.stamp = msg.header.stamp
+        cam_info_msg.header.frame_id = "camera_image_link"
+
+        cam_info_msg.height = params['image_height']
+        cam_info_msg.width = params['image_width']
+
+        cam_info_msg.distortion_model = params['distortion_model']
+
+        cam_info_msg.D = params['distortion_coefficients']['data']
+        cam_info_msg.K = params['camera_matrix']['data']
+        cam_info_msg.R = params['rectification_matrix']['data']
+        cam_info_msg.P = params['projection_matrix']['data']
+
+        self.leftpubmsg.publish(cam_info_msg)
+        self.leftpubraw.publish(msg)
+
+    def rightimageCB(self, msg):
+
+        params = rospy.get_param('right_camera_info')
+
+        cam_info_msg = CameraInfo()
+        cam_info_msg.header.stamp = msg.header.stamp
+
+        cam_info_msg.header.frame_id = "camera_image_link"
+
+        cam_info_msg.height = params['image_height']
+        cam_info_msg.width = params['image_width']
+
+        cam_info_msg.distortion_model = params['distortion_model']
+
+        cam_info_msg.D = params['distortion_coefficients']['data']
+        cam_info_msg.K = params['camera_matrix']['data']
+        cam_info_msg.R = params['rectification_matrix']['data']
+        cam_info_msg.P = params['projection_matrix']['data']
+
+        self.rightpubmsg.publish(cam_info_msg)
+        self.rightpubraw.publish(msg)
+
+    def __init__ (self):
+
+        #this would allow mutiple node instances from mutiple OVCs
+        rospy.init_node("pubsub_both_ovc", anonymous = True)
+
+        self.leftpubmsg = rospy.Publisher("/left/camera_info", CameraInfo, queue_size = 1)
+        self.leftpubraw = rospy.Publisher("/left/image_raw", Image, queue_size = 1)
+
+        self.rightpubmsg = rospy.Publisher("/right/camera_info", CameraInfo, queue_size = 1)
+        self.rightpubraw = rospy.Publisher("/right/image_raw", Image, queue_size = 1)
+
+        rospy.Subscriber("/ovc/left/image_raw", Image, self.leftimageCB, queue_size = 1)
+        rospy.Subscriber("/ovc/right/image_raw", Image, self.rightimageCB, queue_size = 1)
+
+        #rospy.Subscriber("/ovc/left/image_raw", Image, self.leftimageCB)
+        #rospy.Subscriber("/ovc/right/image_raw", Image, self.rightimageCB)
+
+        #no toggling done
+
+    def run(self):
+        rospy.spin()
+
+if __name__ == '__main__':
+
+    relay_object = ovcmain()
+
+    try:
+        relay_object.run()
+    except rospy.ROSInterruptException:
+        print("SHUTTING DOWN CAMERA INFO PUBLISHER")

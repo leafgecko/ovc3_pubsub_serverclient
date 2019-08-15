@@ -1,0 +1,40 @@
+<launch>
+
+	<arg name="param_file" default="disparity_config.yaml" />
+
+	<arg name="node_start_delay" default="1.0" />
+	<node name="stereo_image_proc" pkg="stereo_image_proc" type="stereo_image_proc" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
+		<!--
+		 <param name="approximate_sync" value="True"/>
+	 	-->
+		<rosparam command="load" file="$(find ovc3)/param/$(arg param_file)"/>
+	</node>
+
+	<node pkg="image_view" type="stereo_view" name="stereo_view">
+		<remap from="stereo" to="/"/>
+		<remap from="image" to="image_raw"/>
+	</node>
+
+	<!-- Removed
+	 <node pkg="tf2_ros" type="static_transform_publisher" name="camera_link_publisher" args="0 0 0 -1.57 0 -1.57 camera_link camera_image_link" />
+	 <group ns="ovc">  </group>
+ 	-->
+
+	<!-- Can be used to show rectified image -->
+	<!--
+	<node name="rqt_image_viewl" pkg="rqt_image_view" type="rqt_image_view" respawn="false">
+	  <remap from="image" to="left/image_raw"/>
+	  <remap from="stereo" to="/"/>
+	</node>
+
+	<node name="rqt_image_viewr" pkg="rqt_image_view" type="rqt_image_view" respawn="false">
+		<remap from="image" to="right/image_raw"/>
+	</node>
+	-->
+
+	<!-- Can remove when rqt calibration is perfect-->
+	<arg name="node_start_delay2" default="0.5" />
+	<node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
+
+
+</launch>
